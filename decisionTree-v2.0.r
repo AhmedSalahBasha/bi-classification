@@ -25,7 +25,7 @@ cor(subset(x=dataset, select = c(age, balance, day, duration, campaign, target))
 
 #generate a correlation scatterplot among numeric variables
 # %%%% Becareful ==>  it will take about 3 minutes %%%%
-pairs(subset(x=dataset, select = c(age, balance, day, duration, campaign, target)))
+#pairs(subset(x=dataset, select = c(age, balance, day, duration, campaign, target)))
 
 #generate a table to view the relation between the target and another variables
 table(dataset$y, dataset$loan)
@@ -60,14 +60,14 @@ prop.table(table(trainSet$y))
 prop.table(table(testSet_1$y))
 prop.table(table(testSet_2$y))
 
-#train our model on trainingSet 
+## [3]- train our model on trainingSet 
 #install.packages('C50')
 library(C50)
 model <- C5.0(trainSet[-17], trainSet$y)
 model
 summary(model)
 
-#prediction performance on testSet_1 and testSet_2
+## [4]- prediction performance on testSet_1 and testSet_2
 test_prediction1 <- predict(model, testSet_1, type = "class")
 summary(test_prediction1)
 test_prediction2 <- predict(model, testSet_2, type = "class")

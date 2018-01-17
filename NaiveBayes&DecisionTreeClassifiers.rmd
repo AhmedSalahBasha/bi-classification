@@ -1,0 +1,209 @@
+---
+title: "NaiveBayes & DecisionTree Classifiers"
+author: "Team.8"
+date: "17 Januar 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Business Intelligence - Homework.2
+##Classification on bank-full dataset for predicting the subscribtion of clients
+
+```{r message=FALSE, warning=FALSE}
+#set working directory and import Data
+setwd("~/R/work-space")
+dataset <- read.csv("bank-full.csv", 
+                    header = TRUE, 
+                    sep = ";", 
+                    stringsAsFactors = TRUE)
+```
+
+## [1]- Data Exploration
+
+```{r message=FALSE, warning=FALSE}
+#view the structure of data
+str(dataset)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#view the summary of data
+summary(dataset)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#encoding the target vaiable (y) as a factor of two levels
+dataset$y = factor(dataset$y,
+                   levels = c('yes', 'no'),
+                   labels = c(1, 0))
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#proportions of target vaiable (y)
+table(dataset$y)
+prop.table(table(dataset$y))
+```
+
+
+## [2]- Classifiers Preparation
+
+```{r message=FALSE, warning=FALSE}
+#splitting the dataset into trainingSet and testSet
+#install.packages('caret')
+library(caret)
+set.seed(123)
+
+#split the dataset to 75% for training and 25% for testing
+splitSet <- createDataPartition(y = dataset$y, p = 0.75, list = FALSE)
+trainSet <- dataset[splitSet,]
+testSet <- dataset[-splitSet,]
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#check the number of rows in training set and test set
+nrow(trainSet)
+nrow(testSet)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#proportions of trainSet and testSet
+prop.table(table(trainSet$y))
+prop.table(table(testSet$y))
+```
+
+
+## [3]- NaiveBayes Model
+
+```{r results='hide', message=FALSE, warning=FALSE}
+#importing e1071 library for creating our NaiveBayes model
+library(e1071)
+library(rminer)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#create the naiveBayes classifier model
+nb_model <- naiveBayes(y ~ ., data = trainSet)
+nb_model
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#making predict on testSet using our naiveBayes model
+nb_prediction <- predict(nb_model, testSet, type = "class")
+
+```
+
+## [4]- NaiveBayes Confusion Matrix
+
+```{r message=FALSE, warning=FALSE}
+confusionMatrix(nb_prediction, testSet$y)
+
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#view some metrics about our naiveBayes prediction like Accuracy and TPR compared
+#to the actual value of 'y' variable
+mmetric(testSet$y, nb_prediction, c("ACC", "PRECISION", "TPR", "F1"))
+```
+
+## [5]- NaiveBayes Model Evaluation
+
+```{r message=FALSE, warning=FALSE}
+library(ROCR)
+nb_pred_score = predict(nb_model, newdata = testSet, type = 'raw')
+#plotting the histogram of naiveBayes prediction 
+hist(nb_pred_score, main = "Histogram of NaiveBayes Prediction")
+
+```
+
+
+```{r message=FALSE, warning=FALSE}
+nb_pred = prediction(nb_pred_score[,1], testSet$y)
+nb_eval = performance(nb_pred, "acc")
+#plotting the performance of naiveBayes prediction
+plot(nb_eval)
+```
+
+
+## [6]- NaiveBayes ROC Curve
+
+```{r message=FALSE, warning=FALSE}
+nb_roc = performance(nb_pred, "tpr", "fpr")
+plot(nb_roc, colorize=T, main="NaiveBayes ROC Curve", ylab="Sensitivity", xlab="1-Specifity")
+```
+
+
+## [7]- DecisionTree Model
+
+```{r results='hide', message=FALSE, warning=FALSE}
+#importing C50 library for creating our DecisionTree model
+#install.packages('C50')
+library(C50)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#install.packages('C50')
+library(C50)
+dt_model <- C5.0(trainSet[-17], trainSet$y)
+dt_model
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#making predict on testSet using our model
+dt_prediction <- predict(dt_model, testSet, type = "class")
+
+```
+
+
+## [8]- DecisionTree Confusion Matrix
+
+```{r message=FALSE, warning=FALSE}
+confusionMatrix(dt_prediction, testSet$y)
+
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#view some metrics about our decsionTree prediction like Accuracy and TPR compared
+#to the actual value of 'y' variable
+mmetric(testSet$y, dt_prediction, c("ACC", "PRECISION", "TPR", "F1"))
+```
+
+
+## [9]- DecisionTree Model Evaluation
+
+```{r message=FALSE, warning=FALSE}
+library(ROCR)
+dt_pred_score = predict(dt_model, newdata = testSet, type = 'prob')
+#plotting the histogram of decisionTree prediction 
+hist(dt_pred_score, main = "Histogram of DecisionTree Prediction")
+
+```
+
+
+```{r message=FALSE, warning=FALSE}
+dt_pred = prediction(dt_pred_score[,1], testSet$y)
+dt_eval = performance(dt_pred, "acc")
+#plotting the performance of decisionTree prediction
+plot(dt_eval)
+```
+
+
+## [10]- DecisionTree ROC Curve
+
+```{r message=FALSE, warning=FALSE}
+dt_roc = performance(dt_pred, "tpr", "fpr")
+plot(dt_roc, colorize=T, main="DecisionTree ROC Curve", ylab="Sensitivity", xlab="1-Specifity")
+```
+
