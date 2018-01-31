@@ -1,0 +1,180 @@
+---
+title: "K-MEANS CLUSTERING"
+author: "Ahmed Basha"
+date: "29 Januar 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r }
+# Importing the dataset
+dataset = read.csv("bank-full.csv", 
+                   header = TRUE, 
+                   sep = ";", 
+                   stringsAsFactors = TRUE)
+
+#save y attribute
+y_var = dataset$y
+
+#filter data with two attributes (month, duration)
+dataset = dataset[11:12]
+```
+
+
+
+```{r warning=FALSE}
+# Encoding categorical data - (month)
+dataset$month = factor(dataset$month,
+                   levels = c('jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                              'jul', 'aug', 'sep', 'oct', 'nov', 'dec'),
+                   labels = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
+
+# Convert month attribute datatype to numeric
+dataset$month = as.numeric(levels(dataset$month))[dataset$month]
+
+```
+
+
+```{r}
+#MinMax Normalization 
+dataset$month <- scales::rescale(dataset$month, to=c(0,1))
+dataset$duration <- scales::rescale(dataset$duration, to=c(0,1))
+
+#see the structure of data
+str(dataset)
+```
+
+
+```{r}
+# Fitting K-Means to the dataset
+set.seed(29)
+kmeans_MinMax = kmeans(x = dataset, centers = 2)
+```
+
+```{r}
+#Cluster component
+km_min_max <- kmeans_MinMax$cluster
+```
+
+
+```{r}
+#Using the elbow method to find the optimal number of clusters
+set.seed(6)
+wcss = vector()
+for (i in 1:10) wcss[i] = sum(kmeans(dataset, i)$withinss)
+plot(1:10,
+     wcss,
+     type = 'b',
+     main = paste('The Elbow Method'),
+     xlab = 'Number of clusters',
+     ylab = 'WCSS')
+```
+
+
+
+```{r}
+#confusion matrix of clustering compared to y
+table(y_var,km_min_max)
+```
+
+
+```{r}
+#table of clustering results
+table(km_min_max)
+```
+
+
+
+```{r}
+# Visualising the clusters
+#install.packages('cluster')
+library(cluster)
+clusplot(dataset,
+         km_min_max,
+         lines = 0,
+         shade = TRUE,
+         color = TRUE,
+         labels = 4,
+         plotchar = TRUE,
+         span = TRUE,
+         main = paste('Clusters of Clients With   MinMax-Normalization'))
+```
+
+=======================================================
+
+```{r}
+#Z-score Normalization
+dataset$month <- scale(dataset$month)
+dataset$duration <- scale(dataset$duration)
+```
+
+
+```{r}
+#see the structure of data
+str(dataset)
+```
+
+
+```{r}
+# Fitting K-Means to the dataset
+set.seed(29)
+kmeans_Z_Score = kmeans(x = dataset, centers = 2)
+```
+
+
+```{r}
+km_z_score <- kmeans_Z_Score$cluster
+```
+
+
+
+```{r}
+#Using the elbow method to find the optimal number of clusters
+set.seed(6)
+wcss = vector()
+for (i in 1:10) wcss[i] = sum(kmeans(dataset, i)$withinss)
+plot(1:10,
+     wcss,
+     type = 'b',
+     main = paste('The Elbow Method'),
+     xlab = 'Number of clusters',
+     ylab = 'WCSS')
+
+```
+
+
+
+```{r}
+#confusion matrix of clustering compared to y
+table(y_var,km_z_score)
+```
+
+
+```{r}
+#table of clustering results
+table(km_z_score)
+```
+
+
+
+```{r}
+# Visualising the clusters
+#install.packages('cluster')
+library(cluster)
+clusplot(dataset,
+         km_z_score,
+         lines = 0,
+         shade = TRUE,
+         color = TRUE,
+         labels = 4,
+         plotchar = TRUE,
+         span = TRUE,
+         main = paste('Clusters of Clients With Z-Score-Normalization'))
+```
+
+
